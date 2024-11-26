@@ -1,0 +1,298 @@
+openapi: 3.0.1
+info:
+  title: API de dicionário
+  version: 1.0.0
+  description: Documentação da API para buscar e favoritar palavras.
+servers:
+  - url: http://localhost/api
+    description: servidor local
+paths:
+  /user/me:
+    get:
+      summary: Retorna usuário.
+      description: Retorna dados do usuário autenticado.
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Usuário autenticado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: Joao das Neves
+                  email:
+                    type: string
+                    example: joaodasneves@gmail.com
+                  email_verified_at:
+                    type: string
+                    nullable: true
+                    format: date-time
+                    example: null
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2024-11-24 09:23:12"
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: "2024-11-24 09:23:12"
+        "401":
+            description: Unauthenticated
+  /user/me/history:
+    get:
+      summary: Retorna histórico
+      description: Retorna histórico de palavras pesquisadas pelo usuário.
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de palavras pesquisadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        word:
+                          type: string
+                          example: "car"
+                        searched_at:
+                          type: string
+                          format: date-time
+                          example: "2024-11-25 17:34:12"
+                  totalDocs:
+                    type: integer
+                    example: 1
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  hasNext:
+                    type: boolean
+                    example: false
+                  hasPrev:
+                    type: boolean
+                    example: false
+        "401":
+          description: Unauthenticated
+  /user/me/favorites:
+    get:
+      summary: Retorna favoritos
+      description: Retorna palavras favoritadas pelo usuário.
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de palavras favoritas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        word:
+                          type: string
+                          example: "car"
+                        added_at:
+                          type: string
+                          format: date-time
+                          example: "2024-11-25 17:34:12"
+                  totalDocs:
+                    type: integer
+                    example: 1
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 1
+                  hasNext:
+                    type: boolean
+                    example: false
+                  hasPrev: 
+                    type: boolean
+                    example: false
+        "401":
+          description: Unauthenticated
+  /entries/en:
+    get:
+      summary: Busca palavras
+      description: Retorna palavras paginadas e com suporte a filtros.
+      tags:
+        - Entries
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[search]
+          in: query
+          required: false
+          description: Filtro para palavras que começam com um valor específico.
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          required: false
+          description: Quantidade de registros por página.
+          schema:
+            type: integer
+            default: 15
+      responses:
+        "200":
+          description: Lista de palavras filtradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+  /entries/en/{word}:
+    get:
+      summary: Busca palavra no dicionário.
+      description: Retorna informações da palavra especificada.
+      tags:
+        - Entries
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: Palavra para buscar
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Palavra encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  word:
+                    type: string
+                    example: example
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2024-11-25 18:00:00"
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: "2024-11 13:30:00"
+        "404":
+          description: Palavra não encontrada
+  /entries/en/{word}/favorite:
+    post:
+      summary: Salva palavra nos favoritos
+      description: Salva a palavra especificada nos favoritos.
+      tags:
+        - Entries
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: Palavra a ser favoritada.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Salvo nos favoritos com sucesso.
+        "404":
+          description: Palavra não encontrada
+        "401":
+          description: Unauthenticated
+  /entries/en/{word}/unfavorite:
+    delete:
+      summary: Exclui palavra dos favorito.
+      description: Remove a palavra especificada dos favoritos.
+      tags:
+        - Entries
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: Palavra a ser removida dos favoritos.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removido dos favoritos com sucesso.
+        "404":
+          description: Palavra não encontrada
+        "401":
+          description: Unauthenticated
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PaginatedResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              word:
+                type: string
+                example: "car"
+              created_at:
+                type: string
+                format: date-time
+                example: "2024-11-25 14:12:00"
+        totalDocs:
+          type: integer
+          example: 20
+        page:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 10
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+          
